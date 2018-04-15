@@ -1,0 +1,23 @@
+{
+  "name": "wba2ss18demizkimueldersgeier",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sgeier96/WBA2SS18DemizkiMueldersGeier.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sgeier96/WBA2SS18DemizkiMueldersGeier/issues"
+  },
+  "homepage": "https://github.com/sgeier96/WBA2SS18DemizkiMueldersGeier#readme",
+  "dependencies": {
+    "chalk": "^2.3.2",
+    "express": "^4.16.3"
+  }
+}
