@@ -18,6 +18,8 @@
   "homepage": "https://github.com/sgeier96/WBA2SS18DemizkiMueldersGeier#readme",
   "dependencies": {
     "chalk": "^2.3.2",
-    "express": "^4.16.3"
+    "express": "^4.16.3",
+    "readline-sync": "^1.4.9",
+    "stdio": "^0.2.7"
   }
 }
