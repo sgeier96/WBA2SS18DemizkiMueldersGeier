@@ -24,7 +24,7 @@ var Product = require('./app/models/product');                                  
 // -----------------------------------------------------------------------------
 router.route('/products')
 
-    .post(function(req, res) {                                                  // Ein Produkt erstellen (Zugriff: POST http://localhost:8080/app/product)
+    .post(function(req, res) {                                                  // Ein Produkt erstellen (Zugriff: POST http://localhost:8080/app/products)
 
         var product = new Product();                                            // Eine neue Instanz von Produkt erstellt
         product.name = req.body.name;                                           // Den Namen wie aus der Request setzen
@@ -36,7 +36,7 @@ router.route('/products')
             res.json({ message: 'Product created!' });
         });
     })
-                                                                                // Alle Produkte (Zugriff: GET http://localhost:8080/app/product)
+                                                                                // Alle Produkte (Zugriff: GET http://localhost:8080/app/products)
     .get(function(req, res) {
         Product.find(function(err, product) {
             if (err)
@@ -48,7 +48,7 @@ router.route('/products')
 // -----------------------------------------------------------------------------
 router.route('/products/:product_id')
 
-    .get(function(req, res) {                                                   // Produkt mit der ID (Zugriff GET http://localhost:8080/app/product/:product_id)
+    .get(function(req, res) {                                                   // Produkt mit der ID (Zugriff GET http://localhost:8080/app/products/:product_id)
         Product.findById(req.params.product_id, function(err, product) {
             if (err)
                 res.send(err);
@@ -56,7 +56,7 @@ router.route('/products/:product_id')
         });
     })
 
-    .put(function(req, res) {                                                   // Aktualliesieren (Zugriff PUT http://localhost:8080/app/product/:product_id)
+    .put(function(req, res) {                                                   // Aktualliesieren (Zugriff PUT http://localhost:8080/app/products/:product_id)
 
         Product.findById(req.params.product_id, function(err, product) {
 
@@ -72,7 +72,7 @@ router.route('/products/:product_id')
         });
     })
 
-    .delete(function(req, res) {                                                // Das Produkt nach der ID gelöscht (Zugriff DELETE http://localhost:8080/app/product/:product_id)
+    .delete(function(req, res) {                                                // Das Produkt nach der ID gelöscht (Zugriff DELETE http://localhost:8080/app/products/:product_id)
 
         Product.deleteOne({
             _id: req.params.product_id
