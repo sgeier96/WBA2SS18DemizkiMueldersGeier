@@ -5,7 +5,7 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));                             // app so konfigurieren, dass bodyParser() verwendet wird,
 app.use(bodyParser.json());                                                     // so können wir die Daten von einem POST erhalten
 
-var port = process.env.PORT || 8080;                                            //den Port setzen
+var port = process.env.PORT || 8080;                                            // den Port setzen
 
 
 // ======================== ROUTEN FÜR UNSERE APP ==============================
@@ -22,6 +22,7 @@ router.get('/', function(req, res) {                                            
 
 var Product = require('./app/models/product');                                  // Verweis auf den Konstruktor Product
 var Employee = require('./app/models/employee');
+
 // ========================== Produkt ROUTE ====================================
 router.route('/products')
 
@@ -30,12 +31,22 @@ router.route('/products')
         var product = new Product();                                            // Eine neue Instanz von Produkt erstellt
         product.name = req.body.name;                                           // Den Namen wie aus der Request setzen
         product.number = req.body.number;
+        product.barcode = req.body.barcode;
 
-        product.save(function(err) {                                            // Speichern des Produkts
-            if (err)
-                res.send(err);
+        Product.findOne({barcode: product.barcode},function(err, result) {      // Abfrage, ob so ein Produkt schon existiert
+          if (err)
+              res.send(err);
 
-            res.json({ message: 'Product created!' });
+          if (result) {
+            res.json({ message: 'Product already exsist!' });
+          } else {
+            product.save(function(err) {                                        // Speichern des Produkts
+                if (err)
+                    res.send(err);
+
+                res.json({ message: 'Product created!' });
+            });
+          }
         });
     })
                                                                                 // Alle Produkte (Zugriff: GET http://localhost:8080/app/products)
@@ -101,12 +112,23 @@ router.route('/employees')
         employee.surname = req.body.surname;
         employee.address = req.body.address;
         employee.age = req.body.age;
+        employee.username = req.body.username;
+        employee.password = req.body.password;
 
-        employee.save(function(err) {
-            if (err)
-                res.send(err);
+        Employee.findOne({username: employee.username},function(err, result) {  // Abfrage, ob so ein Mitarbeiter schon existiert
+          if (err)
+              res.send(err);
 
-            res.json({ message: 'Employee created!' });
+          if (result) {
+            res.json({ message: 'Employee already exsist!' });
+          } else {
+            employee.save(function(err) {
+                if (err)
+                    res.send(err);
+
+                res.json({ message: 'Employee created!' });
+            });
+          }
         });
     })
 
@@ -139,12 +161,13 @@ router.route('/employees/:employee_id')
             employee.surname = req.body.surname;
             employee.address = req.body.address;
             employee.age = req.body.age;
+            employee.username = req.username;
+            employee.password = req.password;
 
             employee.save(function(err) {
-                if (err)
-                    res.send(err);
-
-                res.json({ message: 'Employee updated!' });
+            if (err)
+                res.send(err);
+            res.json({ message: 'Employee updated!' });
             });
         });
     })
@@ -163,9 +186,6 @@ router.route('/employees/:employee_id')
 
 
 
-
-
-
 app.use('/app', router);                                                        // Alle Routen werden mit /app eingeleitet.
 
 //========================== MONGODB CONNECTION ================================
@@ -175,7 +195,6 @@ mongoose.connect('mongodb+srv://vadeki:m81HjAmsYNoJS8g9@wba2-peu7d.mongodb.net/t
      console.log("Fehler bei der Verbindung zur Datenbank");
    }
 });
-
 
 // ========================= SERVER STARTEN ====================================
 app.listen(port);

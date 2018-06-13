@@ -3,7 +3,8 @@ var Schema       = mongoose.Schema;
 
 var ProductSchema = new Schema({
     name: String,
-    number: Number                                                              // Anzahl
+    number: Number,                                                             // Anzahl
+    barcode: Number
 });
 
 module.exports = mongoose.model('Product', ProductSchema);
