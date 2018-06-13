@@ -21,13 +21,15 @@ router.get('/', function(req, res) {                                            
 });
 
 var Product = require('./app/models/product');                                  // Verweis auf den Konstruktor Product
-// -----------------------------------------------------------------------------
+var Employee = require('./app/models/employee');
+// ========================== Produkt ROUTE ====================================
 router.route('/products')
 
     .post(function(req, res) {                                                  // Ein Produkt erstellen (Zugriff: POST http://localhost:8080/app/products)
 
         var product = new Product();                                            // Eine neue Instanz von Produkt erstellt
         product.name = req.body.name;                                           // Den Namen wie aus der Request setzen
+        product.number = req.body.number;
 
         product.save(function(err) {                                            // Speichern des Produkts
             if (err)
@@ -62,7 +64,12 @@ router.route('/products/:product_id')
 
             if (err)
                 res.send(err);
-            product.name = req.body.name;                                       // Namen aktualliesieren
+            product.name = req.body.name;
+            product.number = req.body.number;                                   // Namen & Menge aktualliesieren
+
+            if (product.number < 10){
+              console.log("ATTENTION. NUMBER TOO LOW!!!");                      // Nachricht versenden, wenn zu wenig der Ware vorhanden ist.
+            }
             product.save(function(err) {                                        // Produkt speichern
                 if (err)
                     res.send(err);
@@ -83,6 +90,81 @@ router.route('/products/:product_id')
             res.json({ message: 'Successfully deleted' });
         });
     });
+
+// ========================== Mitarbeiter ROUTE ================================
+router.route('/employees')
+
+    .post(function(req, res) {                                                  // Einen Mitarbeiter erstellen (Zugriff: POST http://localhost:8080/app/employees)
+
+        var employee = new Employee();
+        employee.name = req.body.name;
+        employee.surname = req.body.surname;
+        employee.address = req.body.address;
+        employee.age = req.body.age;
+
+        employee.save(function(err) {
+            if (err)
+                res.send(err);
+
+            res.json({ message: 'Employee created!' });
+        });
+    })
+
+    .get(function(req, res) {                                                   // Alle Mitarbeiter (Zugriff: GET http://localhost:8080/app/employees)
+        Employee.find(function(err, employee) {
+            if (err)
+                res.send(err);
+
+            res.json(employee);
+        });
+    });
+// -----------------------------------------------------------------------------
+router.route('/employees/:employee_id')
+
+    .get(function(req, res) {                                                   // Mitarbeiter mit der ID (Zugriff GET http://localhost:8080/app/employees/:employee_id)
+        Employee.findById(req.params.employee_id, function(err, employee) {
+            if (err)
+                res.send(err);
+            res.json(employee);
+        });
+    })
+
+    .put(function(req, res) {                                                   // Aktualliesieren (Zugriff PUT http://localhost:8080/app/employees/:employee_id)
+
+        Employee.findById(req.params.employee_id, function(err, employee) {
+
+            if (err)
+                res.send(err);
+            employee.name = req.body.name;
+            employee.surname = req.body.surname;
+            employee.address = req.body.address;
+            employee.age = req.body.age;
+
+            employee.save(function(err) {
+                if (err)
+                    res.send(err);
+
+                res.json({ message: 'Employee updated!' });
+            });
+        });
+    })
+
+    .delete(function(req, res) {                                                // Den Mitarbeiter nach der ID gelöscht (Zugriff DELETE http://localhost:8080/app/employees/:employee_id)
+
+        Employee.deleteOne({
+            _id: req.params.employee_id
+        }, function(err, employee) {
+            if (err)
+                res.send(err);
+
+            res.json({ message: 'Successfully deleted' });
+        });
+    });
+
+
+
+
+
 
 app.use('/app', router);                                                        // Alle Routen werden mit /app eingeleitet.
 
