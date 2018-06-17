@@ -350,5 +350,6 @@ mongoose.connect('mongodb+srv://vadeki:m81HjAmsYNoJS8g9@wba2-peu7d.mongodb.net/t
 });
 
 // ========================= SERVER STARTEN ====================================
-app.listen(process.env.PORT || port);
-console.log('Der Server ist über dem Port ' + port + ' ansprechbar!');
+app.listen(port, function() {
+    console.log("App is running on port " + port);
+});
