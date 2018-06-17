@@ -22,6 +22,8 @@ router.get('/', function(req, res) {                                            
 
 var Product = require('./app/models/product');                                  // Verweis auf den Konstruktor Product
 var Employee = require('./app/models/employee');
+var Approval = require('./app/models/approval');
+var Order = require('./app/models/order');
 
 // ========================== Produkt ROUTE ====================================
 router.route('/products')
@@ -184,6 +186,157 @@ router.route('/employees/:employee_id')
         });
     });
 
+// ========================== Genehmigung ROUTE ================================
+router.route('/approvals')
+
+    .post(function(req, res) {                                                  // Einen Genehmigung erstellen (Zugriff: POST http://localhost:8080/app/approvals)
+
+        var approval = new Approval();
+        approval.name = req.body.name;
+        approval.username = req.body.username;
+        approval.code = req.body.code;
+
+        Approval.findOne({username: approval.username},function(err, result) {  // Abfrage, ob so eine Genehmigung schon existiert
+          if (err)
+              res.send(err);
+
+          if (result) {
+            res.json({ message: 'Approval already exsist!' });
+          } else {
+            approval.save(function(err) {
+                if (err)
+                    res.send(err);
+
+                res.json({ message: 'Approval created!' });
+            });
+          }
+        });
+    })
+
+    .get(function(req, res) {                                                   // Alle Genehmigungen (Zugriff: GET http://localhost:8080/app/approvals)
+        Approval.find(function(err, approval) {
+            if (err)
+                res.send(err);
+
+            res.json(approval);
+        });
+    });
+// -----------------------------------------------------------------------------
+router.route('/approvals/:approval_id')
+
+    .get(function(req, res) {                                                   // Genehmigung mit der ID (Zugriff GET http://localhost:8080/app/approvals/:approval_id)
+        Approval.findById(req.params.approval_id, function(err, approval) {
+            if (err)
+                res.send(err);
+            res.json(approval);
+        });
+    })
+
+    .put(function(req, res) {                                                   // Aktualliesieren (Zugriff PUT http://localhost:8080/app/employees/:employee_id)
+
+        Approval.findById(req.params.approval_id, function(err, approval) {
+
+            if (err)
+                res.send(err);
+            approval.name = req.body.name;
+            approval.username = req.body.username;
+            approval.code = req.body.code;
+
+            approval.save(function(err) {
+            if (err)
+                res.send(err);
+            res.json({ message: 'Approval updated!' });
+            });
+        });
+    })
+
+    .delete(function(req, res) {                                                // Die Genehmigung nach der ID gelöscht (Zugriff DELETE http://localhost:8080/app/approvals/:approval_id)
+
+        Approval.deleteOne({
+            _id: req.params.approval_id
+        }, function(err, approval) {
+            if (err)
+                res.send(err);
+
+            res.json({ message: 'Successfully deleted' });
+        });
+    });
+
+// ========================== Auftrags ROUTE ================================
+router.route('/orders')
+
+    .post(function(req, res) {                                                  // Einen Auftrag erstellen (Zugriff: POST http://localhost:8080/app/orders)
+
+        var order = new Order();
+        order.name = req.body.name;
+        order.orderNumber = req.body.orderNumber;
+
+        Order.findOne({orderNumber: order.number},function(err, result) {       // Abfrage, ob so ein Auftrag schon existiert
+          if (err)
+              res.send(err);
+
+          if (result) {
+            res.json({ message: 'Order already exsist!' });
+          } else {
+            order.save(function(err) {
+                if (err)
+                    res.send(err);
+
+                res.json({ message: 'Order created!' });
+            });
+          }
+        });
+    })
+
+    .get(function(req, res) {                                                   // Alle Aufträge (Zugriff: GET http://localhost:8080/app/orders)
+        Order.find(function(err, order) {
+            if (err)
+                res.send(err);
+
+            res.json(order);
+        });
+    });
+// -----------------------------------------------------------------------------
+router.route('/orders/:order_id')
+
+    .get(function(req, res) {                                                   // Auftrag mit der ID (Zugriff GET http://localhost:8080/app/orders/:order_id)
+        Order.findById(req.params.order_id, function(err, order) {
+            if (err)
+                res.send(err);
+            res.json(order);
+        });
+    })
+
+    .put(function(req, res) {                                                   // Aktualliesieren (Zugriff PUT http://localhost:8080/app/orders/:order_id)
+
+        Order.findById(req.params.order_id, function(err, order) {
+
+            if (err)
+                res.send(err);
+            order.name = req.body.name;
+            order.orderNumber = req.body.orderNumber;
+
+            order.save(function(err) {
+            if (err)
+                res.send(err);
+            res.json({ message: 'Order updated!' });
+            });
+        });
+    })
+
+    .delete(function(req, res) {                                                // Der Auftrag nach der ID gelöscht (Zugriff DELETE http://localhost:8080/app/approvals/:approval_id)
+
+        Order.deleteOne({
+            _id: req.params.order_id
+        }, function(err, order) {
+            if (err)
+                res.send(err);
+
+            res.json({ message: 'Successfully deleted' });
+        });
+    });
+
+
 
 
 app.use('/app', router);                                                        // Alle Routen werden mit /app eingeleitet.
@@ -197,5 +350,5 @@ mongoose.connect('mongodb+srv://vadeki:m81HjAmsYNoJS8g9@wba2-peu7d.mongodb.net/t
 });
 
 // ========================= SERVER STARTEN ====================================
-app.listen(port);
+app.listen(process.env.PORT || port);
 console.log('Der Server ist über dem Port ' + port + ' ansprechbar!');
