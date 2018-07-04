@@ -23,6 +23,7 @@
     "mongodb": "^3.0.10",
     "mongoose": "^5.1.4",
     "readline-sync": "^1.4.9",
+    "request": "^2.87.0",
     "stdio": "^0.2.7"
   }
 }
