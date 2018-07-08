@@ -7,7 +7,6 @@ app.use(bodyParser.json());                                                     
 
 var port = process.env.PORT || 8080;                                            // den Port setzen
 
-
 // ======================== ROUTEN FÜR UNSERE APP ==============================
 var router = express.Router();                                                  // Instanz des Express Routers
 
@@ -22,9 +21,8 @@ router.get('/', function(req, res) {                                            
 
 var Product = require('./app/models/product');                                  // Verweis auf den Konstruktor Product
 var Employee = require('./app/models/employee');
-var Approval = require('./app/models/approval');
 var Order = require('./app/models/order');
-
+var Cart = require('./app/models/cart')
 // ========================== Produkt ROUTE ====================================
 router.route('/products')
 
@@ -47,6 +45,7 @@ router.route('/products')
                     res.send(err);
 
                 res.json({ message: 'Product created!' });
+                //res.status(200).json({uri: req.protocol + ":// + req.headers.host + "/" +..."})  URI mit übergeben!!!!!!!!!
             });
           }
         });
@@ -165,6 +164,7 @@ router.route('/employees/:employee_id')
             employee.age = req.body.age;
             employee.username = req.username;
             employee.password = req.password;
+            employee.approval = req.approval;
 
             employee.save(function(err) {
             if (err)
@@ -179,82 +179,6 @@ router.route('/employees/:employee_id')
         Employee.deleteOne({
             _id: req.params.employee_id
         }, function(err, employee) {
-            if (err)
-                res.send(err);
-
-            res.json({ message: 'Successfully deleted' });
-        });
-    });
-
-// ========================== Genehmigung ROUTE ================================
-router.route('/approvals')
-
-    .post(function(req, res) {                                                  // Einen Genehmigung erstellen (Zugriff: POST http://localhost:8080/app/approvals)
-
-        var approval = new Approval();
-        approval.name = req.body.name;
-        approval.username = req.body.username;
-        approval.code = req.body.code;
-
-        Approval.findOne({username: approval.username},function(err, result) {  // Abfrage, ob so eine Genehmigung schon existiert
-          if (err)
-              res.send(err);
-
-          if (result) {
-            res.json({ message: 'Approval already exsist!' });
-          } else {
-            approval.save(function(err) {
-                if (err)
-                    res.send(err);
-
-                res.json({ message: 'Approval created!' });
-            });
-          }
-        });
-    })
-
-    .get(function(req, res) {                                                   // Alle Genehmigungen (Zugriff: GET http://localhost:8080/app/approvals)
-        Approval.find(function(err, approval) {
-            if (err)
-                res.send(err);
-
-            res.json(approval);
-        });
-    });
-// -----------------------------------------------------------------------------
-router.route('/approvals/:approval_id')
-
-    .get(function(req, res) {                                                   // Genehmigung mit der ID (Zugriff GET http://localhost:8080/app/approvals/:approval_id)
-        Approval.findById(req.params.approval_id, function(err, approval) {
-            if (err)
-                res.send(err);
-            res.json(approval);
-        });
-    })
-
-    .put(function(req, res) {                                                   // Aktualliesieren (Zugriff PUT http://localhost:8080/app/employees/:employee_id)
-
-        Approval.findById(req.params.approval_id, function(err, approval) {
-
-            if (err)
-                res.send(err);
-            approval.name = req.body.name;
-            approval.username = req.body.username;
-            approval.code = req.body.code;
-
-            approval.save(function(err) {
-            if (err)
-                res.send(err);
-            res.json({ message: 'Approval updated!' });
-            });
-        });
-    })
-
-    .delete(function(req, res) {                                                // Die Genehmigung nach der ID gelöscht (Zugriff DELETE http://localhost:8080/app/approvals/:approval_id)
-
-        Approval.deleteOne({
-            _id: req.params.approval_id
-        }, function(err, approval) {
             if (err)
                 res.send(err);
 
@@ -336,7 +260,63 @@ router.route('/orders/:order_id')
         });
     });
 
+// ========================== Warenkorb ROUTE ================================
+router.route('/carts')
 
+    .post(function(req, res) {
+
+        var cart = new Cart();
+        cart.username = req.body.username;
+        cart.orderID = req.body.orderID;
+        cart.links = req.body.links;
+
+        Cart.findOne({username: cart.username},function(err, result) {          //Nach dem User Suchen.
+          if (err)
+              res.send(err);
+
+          if (result) {
+            //res.json({ message: 'Cart already exsist!' });
+            res.json(cart);                                                      //To-Do: Die aktuellen links mit schicken!
+          } else {
+            cart.save(function(err) {
+                if (err)
+                    res.send(err);
+
+                //res.json({ message: 'Cart created!' });
+                //res.status(203).end();
+                res.json(cart);                                                 //Cart_ID zurückschicken
+            });
+          }
+        });
+    });
+// -----------------------------------------------------------------------------
+router.route('/carts/:cart_id')
+
+    .get(function(req, res) {
+        Cart.findById(req.params.cart_id, function(err, cart) {
+            if (err)
+                res.send(err);
+            res.json(cart);
+        });
+    })
+
+    .put(function(req, res) {
+
+        Cart.findById(req.params.cart_id, function(err, cart) {
+
+            if (err)
+                res.send(err);
+            cart.links = req.body.links;
+
+            cart.save(function(err) {
+            if (err)
+                res.send(err);
+            res.json({ message: 'Cart updated!' });
+            });
+        });
+    })
+
+//==============================================================================
 
 
 app.use('/app', router);                                                        // Alle Routen werden mit /app eingeleitet.
@@ -351,5 +331,5 @@ mongoose.connect('mongodb+srv://vadeki:m81HjAmsYNoJS8g9@wba2-peu7d.mongodb.net/t
 
 // ========================= SERVER STARTEN ====================================
 app.listen(port, function() {
-    console.log("App is running on port " + port);
+    console.log("Server is running on port " + port);
 });
