@@ -8,6 +8,7 @@ var EmployeeSchema = new Schema({
     age: Number,
     username: String,
     password: String,
+    rank: String,
     approval: String
     //employee_id: Number                                                       // Für POST Abfrage, falls dieselbe Person erstellt wird.
 });
