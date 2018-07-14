@@ -1,23 +1,23 @@
-var express = require('express');
+var express = require('express');                                               // Einbindung von Modulen
 var request = require('request');
 var app = express();
 var bodyParser = require('body-parser');
 
 // file system module to perform file operations
 const fs = require('fs');
-var userData = fs.readFileSync("./userLogin.json");                             // Synchron weil man die Daten unbedingt braucht.
+var userData = fs.readFileSync("./userLogin.json");                             // Synchron Aufbau, weil man die Daten unbedingt braucht.
 userData = JSON.parse(userData);
+                                                                                //____Wichtige globale Variablen, die mehrmals benutzt werden. ____
+var cartID;                                                                     // <-- Ganzes Warenkorb
+var orderID;                                                                    // <-- Auftragsnummer
+var allProducts;                                                                // <-- Alle Produkte
+var employeeCheck;                                                              // <-- Testen, welcher Mitarbeiter online ist
+var accessCheck = false;                                                        // <-- Testen, ob einer Online ist
+var onlineUser;                                                                 // <-- aktuelle User Daten
+var allPersons;                                                                 // <-- Alle Personen
+var freeEmployee = [];                                                          // <-- Jeder Mitarbeiter der keine Arbeit hat
+var serverURL = 'https://wba2demizkimuelders.herokuapp.com/app/';               // <-- Server URL
 
-var cartID;                                                                     // Ganzes Warenkorb
-var orderID;
-var allProducts;
-var employeeCheck;
-var accessCheck = false;
-var onlineUser;
-var allPersons;
-var freeEmployee = [];
-//var serverURL = 'https://wba2demizkimuelders.herokuapp.com/app/';             //Server URL
-var serverURL = 'http://localhost:8080/app/';                                   //___________Später entfernen !!!!!!!!!!!!!!!!!!!
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -27,24 +27,24 @@ app.post('/login', function(req, res){
   let username = req.body.username;
   let password = req.body.password;
 
-  if (accessCheck == false){
-    request.get(urlEmployee, function(err, response, body){                       // GET Request employee
+  if (accessCheck == false){                                                    // Check, ob online
+    request.get(urlEmployee, function(err, response, body){                     // GET Request /employees
       if(err){
         res.status(404).send('Fehler bei der GET request!');
       }
       else {
-        allPersons = JSON.parse(body);
+        allPersons = JSON.parse(body);                                          // alle Personen abspeichern
 
-        for (var i = 0; i < allPersons.length; i++){
+        for (var i = 0; i < allPersons.length; i++){                            // Übereinstimmung des Usernamen und Passwort prüfen
           if (allPersons[i].username == username && allPersons[i].password == password){
             onlineUser = allPersons[i];
             employeeCheck = allPersons[i].rank;
-            accessCheck = true;
+            accessCheck = true;                                                 // User ist nun Online
 
             // stringify JSON Object
             var userContent = JSON.stringify(onlineUser);
 
-            fs.writeFile("userLogin.json", userContent, function (err) {        // Zum schnellen testen. Globale Variable (Fehler aufgetaucht).
+            fs.writeFile("userLogin.json", userContent, function (err) {        // Zum schnellen testen. Bei einer Globale Variable sind Fehler aufgetaucht.
                 if (err) {
                   res.status(400).send('Fehler beim Login! (JSON)');
                 }
@@ -62,11 +62,11 @@ app.post('/login', function(req, res){
   else {
     res.status(400).send('Sie sind schon angemeldet.');
   }
-});
+});                                         // POST http://localhost:3000/login body = {username,password}
 //---------------------------- Logout (Alle) -----------------------------------
 app.get('/logout', function(req, res){
   accessCheck = false;
-  fs.writeFile("userLogin.json", "", function (err) {                           // Zum schnellen testen. Globale Variable (Fehler aufgetauchen).
+  fs.writeFile("userLogin.json", "{}", function (err) {                         // Löschen der User Daten aus userLogin.json
       if (err) {
         res.status(400).send('Fehler beim Logout! (JSON)');
       }
@@ -74,10 +74,10 @@ app.get('/logout', function(req, res){
         res.status(200).send('Logout erfolgreich!');
       }
   });
-});
+});                                         // GET http://localhost:3000/logout
 //------------------- Produkt hinzufügen (Lagerverwalter) ----------------------
-app.post('/products', function(req, res){
-  if (accessCheck == true && employeeCheck == 'Lagerverwalter'){
+app.post('/products', function(req, res){                                       // POST http://localhost:3000/products body = {name,number("bedeutet Anzahl"),barcode,class}
+  if (accessCheck == true && employeeCheck == 'Lagerverwalter'){                // Testen, ob User angemeldet und ein Lagerverwalter ist
     let urlProducts = serverURL + 'products';
     let productData = {
       "name" : req.body.name,
@@ -94,7 +94,7 @@ app.post('/products', function(req, res){
       json : productData
     };
 
-    request.post(options, function(err, response, body){
+    request.post(options, function(err, response, body){                        // POST /products -> hinzufügen eines neuen Produktes
       if(err){
         res.status(404).send('Fehler: POST Request');
       }
@@ -108,11 +108,11 @@ app.post('/products', function(req, res){
   }
 });
 //---------------- Alle Produkte ausgeben (Lagerverwalter) ---------------------
-app.get('/products', function(req, res){
+app.get('/products', function(req, res){                                        // GET http://localhost:3000/products
   if (accessCheck == true && employeeCheck == 'Lagerverwalter'){
     let urlProducts = serverURL + 'products';
 
-    request.get(urlProducts, function(err, response, body){
+    request.get(urlProducts, function(err, response, body){                     // GET /products -> Alle Produkte zeigen
       if(err){
         res.status(404).send('Fehler: GET Request');
       }
@@ -126,7 +126,7 @@ app.get('/products', function(req, res){
   }
 });
 //--------------------- Produkt löschen (Lagerverwalter) -----------------------
-app.delete('/products/:product_id', function(req, res){
+app.delete('/products/:product_id', function(req, res){                         // DELETE http://localhost:3000/products/:product_id
   if (accessCheck == true && employeeCheck == 'Lagerverwalter'){
     let urlProducts = serverURL + 'products/'+ req.params.product_id;
 
@@ -138,12 +138,12 @@ app.delete('/products/:product_id', function(req, res){
       },
     };
 
-    request.delete(options, function(err, response, body){
+    request.delete(options, function(err, response, body){                      // DELETE /products/:product_id
       if(err){
         res.status(404).send('Fehler: GET Request');
       }
       else {
-        res.status(200).send(JSON.parse(body));
+        res.status(200).send(body);
       }
     });
   }
@@ -152,7 +152,7 @@ app.delete('/products/:product_id', function(req, res){
   }
 });
 //-------------------- Auftrag erstellen (Manager) -----------------------------
-app.get('/assignments', function(req, res){
+app.get('/assignments', function(req, res){                                     // GET http://localhost:3000/assignments
   if (accessCheck == true && employeeCheck == 'Manager'){
 
     for (var i = 0; i < allPersons.length; i++){
@@ -160,26 +160,26 @@ app.get('/assignments', function(req, res){
         freeEmployee[i] = allPersons[i];
       }
     }
-    res.status(200).send(freeEmployee);
+    res.status(200).send(freeEmployee);                                         // Alle Mitarbeiter ohne Aufgabe zeigen
   }
   else {
     res.status(401).send('Keinen Zugriff auf die Aktivität: Auftrag erstellen');
   }
 });
 
-app.post('/assignments', function(req, res){
-  let selectedEmployee;
+app.post('/assignments', function(req, res){                                    // POST http://localhost:3000/assignments
+  let selectedEmployee;                                                         // body = {employeeID,orderName,description,username,products[productName],...}
   let productClass;
   let urlOrder = serverURL + 'orders';
-  if (accessCheck == true && employeeCheck == 'Manager'){
+  if (accessCheck == true && employeeCheck == 'Manager'){                       // Checken, ob User = Manager
 
-    for (var i = 0; i < freeEmployee.length; i++){
+    for (var i = 0; i < freeEmployee.length; i++){                              // nach employeeID den Mitarbeiter auswählen
       if (freeEmployee[i]._id == req.body.employeeID){
         selectedEmployee = freeEmployee[i];
       }
     }
 
-    if (selectedEmployee.approval == req.body.products.productClass){
+    if (selectedEmployee.approval == req.body.products.productClass){           // Prüfen, ob Ausgewählter die Produkte überhaupt entnehmen darf
       let orderData = {
         "orderName" : req.body.orderName,
         "description" : req.body.description,
@@ -201,12 +201,12 @@ app.post('/assignments', function(req, res){
         json : orderData
       };
 
-      request.post(options, function(err, response, body){
+      request.post(options, function(err, response, body){                      // POST /orders
         if(err){
           res.status(404).send('Fehler: POST request');
         }
         else {
-          res.status(201).send(body);
+          res.status(201).send(body);                                           // Erstellte Order wird zurückgeschickt
         }
       });
     }
@@ -218,8 +218,8 @@ app.post('/assignments', function(req, res){
     res.status(401).send('Keinen Zugriff auf die Aktivität: Auftrag erstellen.');
   }
 });
-//-------------------- Auftrag bearbeiten (Alle) -------------------------------
-app.get('/tasks', function(req, res){
+//---------------- Auftrag bearbeiten (momentan nur Azubi) ---------------------
+app.get('/tasks', function(req, res){                                           // GET http://localhost:3000/tasks
   let urlOrder = serverURL + 'orders';
   let allOrders;
   let username = userData.username;
@@ -232,13 +232,13 @@ app.get('/tasks', function(req, res){
       else {
         allOrders = JSON.parse(body);
 
-        if (allOrders === null){
+        if (allOrders === null){                                                // Wenn keine Aufträge verfügbar sind
           res.status(404).send('Keine Aufträge gefunden!');
         }
         else {
           for (var i = 0; i < allOrders.length; i++){                           // -> Nur die User relevanten Order zeigen.
             if (allOrders[i].username == username){
-              res.status(200).send(allOrders[i]);                               // Wir gehen erstmal davon aus, dass der Auftrag vergeben wurde.
+              res.status(200).send(allOrders[i]);
             }
           }
         }
@@ -250,8 +250,8 @@ app.get('/tasks', function(req, res){
   }
 });
 
-app.post('/tasks' , function(req, res){                                         // Auftrag ausgewählt. 1. Warenkorb erstellen ---> 2. Alle Produkte zeigen
-  let urlCart = serverURL + 'carts';                                            // http://localhost:8080/task  POST (body)orderID = ...
+app.post('/tasks' , function(req, res){                                         // POST http://localhost:3000/tasks   body = {orderID = ...}
+  let urlCart = serverURL + 'carts';                                            // Auftrag ausgewählt. 1. Warenkorb erstellen ---> 2. Alle Produkte zeigen
   let urlProducts = serverURL + 'products';
   orderID = req.body.orderID;
 
@@ -291,12 +291,12 @@ app.post('/tasks' , function(req, res){                                         
     }
     else {
       allProducts = JSON.parse(body);
-      res.status(200).send(allProducts);
+      res.status(200).send(allProducts);                                        // Senden aller Produkte, damit der Benutzer welche auswählen kann.
     }
   });
 });
 
-app.put('/tasks' , function(req, res){
+app.put('/tasks' , function(req, res){                                          // PUT http://localhost:3000/tasks   body = {productID = ..., number = ...}
   let userApproval = userData.approval;
   let urlProducts = serverURL + 'products/' + req.body.productID;
   let urlCart = serverURL + 'carts/' + cartID._id;
@@ -305,11 +305,11 @@ app.put('/tasks' , function(req, res){
   let productID;
   let userClass = userData.approval;
 
-  if (accessCheck == false){                                                     // Login Überprüfung! ___________Später auf 'false' setzen!!!
+  if (accessCheck == false){                                                    // Login Überprüfung!
     res.status(401).send('Bitte erstmal einloggen!  -->POST http://localhost:3000/login');
   }
   else {
-    if (typeof(cartID) == 'undefined'|| cartID === null){
+    if (typeof(cartID) == 'undefined'|| cartID === null){                       // Check, ob Warenkorb erstellt wurde
       res.status(400).send('Bitte erstmal Warenkorb erstellen/auswählen!  -->POST http://localhost:3000/task');
     }
     else {
@@ -323,11 +323,11 @@ app.put('/tasks' , function(req, res){
           break;
         }
       }
-      if (productClass !== userClass){
+      if (productClass !== userClass){                                          // Check, ob Mitarbeiter das Produkt entnehmen darf
         res.status(401).send('Entnahme nicht möglich! Notwendige Berechtigung fehlt.');
       }
       else {
-        if (productAmount.number - req.body.number < 0){
+        if (productAmount.number - req.body.number < 0){                        // Check, ob es genug Produkte im Lager gibt
           res.status(400).send('Entnahme nicht möglich! Die gewünschte Menge überschreitet den tatsächlichen Warebestand.');
         }
         else {
@@ -378,7 +378,7 @@ app.put('/tasks' , function(req, res){
               res.status(404).send('Fehler: PUT Request');
             }
             else {
-              res.status(200).send(body);
+              res.status(200).send(body);                                       // Bestätigung der erfolgreichen Entnahme durch das Zusenden des Warenkorbes.
             }
           });
         }
@@ -390,6 +390,6 @@ app.put('/tasks' , function(req, res){
 
 
 //==============================================================================
-app.listen(3000, function(){
+app.listen(3000, function(){                                                    // Der Dienstgeber ist auf Port 3000 verfügbar.
   console.log("Der Dienstnutzer ist nun auf Port 3000 verfügbar.");
 });
