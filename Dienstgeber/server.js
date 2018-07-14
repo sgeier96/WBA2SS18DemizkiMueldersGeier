@@ -16,7 +16,7 @@ router.use(function(req, res, next) {                                           
 });
 
 router.get('/', function(req, res) {                                            // Test Route (Zugriff: GET http://localhost:8080/app)
-    res.json({ message: 'Standard-Route worked!' });
+    res.status(200).send('Standard-Route worked!');
 });
 
 var Product = require('./app/models/product');                                  // Verweis auf den Konstruktor Product
@@ -37,18 +37,17 @@ router.route('/products')
 
         Product.findOne({barcode: product.barcode},function(err, result) {      // Abfrage, ob so ein Produkt schon existiert
           if (err){
-            res.send(err);
+            res.status(200).send(err);
           }
 
           if (result) {
-            res.json({ message: 'Product already exsist!' });
+            res.status(200).send('Product already exsist!');
           } else {
             product.save(function(err) {                                        // Speichern des Produkts
                 if (err){
-                  res.send(err);
+                  res.status(500).send(err);
                 }
-                res.json({ message: 'Product created!' });
-                //res.status(200).json({uri: req.protocol + ":// + req.headers.host + "/" +..."})  URI mit übergeben!!!!!!!!!
+                res.status(201).send('Product created!');
             });
           }
         });
@@ -57,10 +56,10 @@ router.route('/products')
     .get(function(req, res) {
         Product.find(function(err, product) {
             if (err){
-              res.send(err);
+              res.status(500).send(err);
             }
             else {
-                res.json(product);
+              res.status(200).send(product);
             }
         });
     });
@@ -70,10 +69,10 @@ router.route('/products/:product_id')
     .get(function(req, res) {                                                   // Produkt mit der ID (Zugriff GET http://localhost:8080/app/products/:product_id)
         Product.findById(req.params.product_id, function(err, product) {
             if (err){
-              res.send(err);
+              res.status(500).send(err);
             }
             else {
-              res.json(product);
+              res.status(200).send(product);
             }
         });
     })
@@ -83,21 +82,23 @@ router.route('/products/:product_id')
         Product.findById(req.params.product_id, function(err, product) {
 
             if (err){
-              res.send(err);
+              res.status(500).send(err);
             }
             else {
               product.name = req.body.name;
-              product.number = req.body.number;                                   // Namen & Menge aktualliesieren
+              product.number = req.body.number;
+              product.barcode = req.body.barcode;
+              product.class = req.body.class;                                   // Namen & Menge aktualliesieren
 
               if (product.number < 10){
-                console.log("ATTENTION. NUMBER TOO LOW!!!");                      // Nachricht versenden, wenn zu wenig der Ware vorhanden ist.
+                console.log("ATTENTION. NUMBER TOO LOW!!!");                    // Nachricht versenden, wenn zu wenig der Ware vorhanden ist.
               }
               product.save(function(err) {                                        // Produkt speichern
                   if (err){
-                    res.send(err);
+                    res.status(500).send(err);
                   }
                   else {
-                    res.json({ message: 'Product updated!' });
+                    res.status(200).send('Product updated!');
                   }
               });
             }
@@ -110,10 +111,10 @@ router.route('/products/:product_id')
             _id: req.params.product_id
         }, function(err, product) {
             if (err){
-              res.send(err);
+              res.status(500).send(err);
             }
             else {
-              res.json({ message: 'Successfully deleted' });
+              res.status(200).send('Successfully deleted!');
             }
         });
     });
@@ -132,21 +133,22 @@ router.route('/employees')
         employee.password = req.body.password;
         employee.rank = req.body.rank;
         employee.approval = req.body.approval;
+        employee.orderID = req.body.orderID;
 
         Employee.findOne({username: employee.username},function(err, result) {  // Abfrage, ob so ein Mitarbeiter schon existiert
           if (err){
-            res.send(err);
+            res.status(500).send(err);
           }
 
           if (result) {
-            res.json({ message: 'Employee already exsist!' });
+            res.status(200).send('Employee already exsist!');
           } else {
             employee.save(function(err) {
                 if (err){
-                  res.send(err);
+                  res.status(500).send(err);
                 }
                 else {
-                  res.json({ message: 'Employee created!' });
+                  res.status(201).send('Employee created!');
                 }
             });
           }
@@ -156,10 +158,10 @@ router.route('/employees')
     .get(function(req, res) {                                                   // Alle Mitarbeiter (Zugriff: GET http://localhost:8080/app/employees)
         Employee.find(function(err, employee) {
             if (err){
-              res.send(err);
+              res.status(500).send(err);
             }
             else {
-              res.json(employee);
+              res.status(200).send(employee);
             }
         });
     });
@@ -169,10 +171,10 @@ router.route('/employees/:employee_id')
     .get(function(req, res) {                                                   // Mitarbeiter mit der ID (Zugriff GET http://localhost:8080/app/employees/:employee_id)
         Employee.findById(req.params.employee_id, function(err, employee) {
             if (err){
-              res.send(err);
+              res.status(500).send(err);
             }
             else {
-              res.json(employee);
+              res.status(200).send(employee);
             }
         });
     })
@@ -182,7 +184,7 @@ router.route('/employees/:employee_id')
         Employee.findById(req.params.employee_id, function(err, employee) {
 
             if (err){
-              res.send(err);
+              res.status(500).send(err);
             }
             else {
               employee.name = req.body.name;
@@ -193,13 +195,14 @@ router.route('/employees/:employee_id')
               employee.password = req.body.password;
               employee.rank = req.body.rank;
               employee.approval = req.body.approval;
+              employee.orderID = req.body.orderID;
 
               employee.save(function(err) {
                 if (err){
-                  res.send(err);
+                  res.status(500).send(err);
                 }
                 else {
-                  res.json({ message: 'Employee updated!' });
+                  res.status(200).send('Employee updated!');
                 }
               });
             }
@@ -212,10 +215,10 @@ router.route('/employees/:employee_id')
             _id: req.params.employee_id
         }, function(err, employee) {
             if (err){
-              res.send(err);
+              res.status(500).send(err);
             }
             else {
-              res.json({ message: 'Successfully deleted' });
+              res.status(200).send('Successfully deleted');
             }
         });
     });
@@ -226,22 +229,24 @@ router.route('/orders')
     .post(function(req, res) {                                                  // Einen Auftrag erstellen (Zugriff: POST http://localhost:8080/app/orders)
 
         var order = new Order();
-        order.name = req.body.name;
-        order.orderNumber = req.body.orderNumber;
+        order.orderName = req.body.orderName;
+        order.description = req.body.description;
+        order.username = req.body.username;
+        order.products = req.body.products;
 
-        Order.findOne({orderNumber: order.number},function(err, result) {       // Abfrage, ob so ein Auftrag schon existiert
+        Order.findOne({orderName: order.orderName},function(err, result) {       // Abfrage, ob so ein Auftrag schon existiert
           if (err){
-            res.send(err);
+            res.status(500).send(err);
           }
           if (result) {
-            res.json({ message: 'Order already exsist!' });
+            res.status(200).send('Order already exsist!');
           } else {
             order.save(function(err) {
                 if (err){
-                  res.send(err);
+                  res.status(500).send(err);
                 }
                 else {
-                  res.json({ message: 'Order created!' });
+                  res.status(200).send(order);
                 }
             });
           }
@@ -251,10 +256,10 @@ router.route('/orders')
     .get(function(req, res) {                                                   // Alle Aufträge (Zugriff: GET http://localhost:8080/app/orders)
         Order.find(function(err, order) {
             if (err){
-              res.send(err);
+              res.status(500).send(err);
             }
             else {
-              res.json(order);
+              res.status(200).send(order);
             }
         });
     });
@@ -264,10 +269,10 @@ router.route('/orders/:order_id')
     .get(function(req, res) {                                                   // Auftrag mit der ID (Zugriff GET http://localhost:8080/app/orders/:order_id)
         Order.findById(req.params.order_id, function(err, order) {
             if (err){
-              res.send(err);
+              res.status(500).send(err);
             }
             else {
-              res.json(order);
+              res.status(200).send(order);
             }
         });
     })
@@ -277,18 +282,20 @@ router.route('/orders/:order_id')
         Order.findById(req.params.order_id, function(err, order) {
 
             if (err){
-              res.send(err);
+              res.status(500).send(err);
             }
             else {
-              order.name = req.body.name;
-              order.orderNumber = req.body.orderNumber;
+              order.orderName = req.body.orderName;
+              order.description = req.body.description;
+              order.username = req.body.username;
+              order.products = req.body.products;
 
               order.save(function(err) {
                 if (err){
-                  res.send(err);
+                  res.status(500).send(err);
                 }
                 else {
-                  res.json({ message: 'Order updated!' });
+                  res.status(200).send('Order updated!');
                 }
               });
             }
@@ -301,10 +308,10 @@ router.route('/orders/:order_id')
             _id: req.params.order_id
         }, function(err, order) {
             if (err){
-              res.send(err);
+              res.status(500).send(err);
             }
             else {
-              res.json({ message: 'Successfully deleted' });
+              res.status(200).send('Successfully deleted');
             }
         });
     });
@@ -312,6 +319,9 @@ router.route('/orders/:order_id')
 // ========================== Warenkorb ROUTE ================================
 router.route('/carts')
 
+    .get(function(req, res){
+      res.status(501).send('Nicht bereitgestellt!');
+    })
     .post(function(req, res) {
 
         var cart = new Cart();
@@ -321,20 +331,18 @@ router.route('/carts')
 
         Cart.findOne({username: cart.username},function(err, result) {          // Nach dem User Suchen.
           if (err){
-             res.send(err);
+             res.status(500).send(err);
           }
 
           if (result) {
-            //res.json({ message: 'Cart already exsist!' });
-            res.json(result);                                                   // Cart wird zurückgeschickt
+            res.status(200).send(result);                                       // Cart wird zurückgeschickt
           } else {
             cart.save(function(err) {
                 if (err){
-                  res.send(err);
+                  res.status(500).send(err);
                 }
                 else {
-                  //res.json({ message: 'Cart created!' });
-                  //res.status(203).end();
+                  res.status(201).send('Cart created!');
                 }
             });
           }
@@ -344,42 +352,40 @@ router.route('/carts')
 router.route('/carts/:cart_id')
 
     .get(function(req, res) {
-        Cart.findById(req.params.cart_id, function(err, cart) {
+        Cart.findById(req.params.cart_id, function(err, cart) {                 // Nach cart_id suchen
             if (err){
-              res.send(err);
+              res.status(500).send(err);
             }
             else {
-              res.json(cart);
+              res.status(200).send(cart);                                       // Warenkorb zurückschicken
             }
         });
     })
 
     .put(function(req, res) {
         Cart.findByIdAndUpdate(req.params.cart_id,
-          {$push:{links: req.body.links}},
+          {$push:{links: req.body.links}},                                      // Weitere Produkte hinzufügen
           {safe: true, upsert: true, new: true},
           function(err, cart) {
             if (err){
-              res.send(err);
+              res.status(500).send(err);
             }
             else {
               if(cart != null){
                 cart.username = req.body.username;
                 cart.orderID = req.body.orderID;
-                //cart.links = req.body.links;
 
                 cart.save(function(err) {
                   if (err){
-                    res.send(err);
+                    res.status(500).send(err);
                   }
                   else {
-                    //res.json({ message: 'Cart updated!' });
-                    res.json(cart);
+                    res.status(200).send(cart);
                   }
                 });
               }
               else {
-                res.send(err);
+                res.status(500).send(err);
               }
             }
         });
@@ -394,7 +400,7 @@ app.use('/app', router);                                                        
 var mongoose   = require('mongoose');                                           //Mit mongoDB verbinden
 mongoose.connect('mongodb+srv://vadeki:m81HjAmsYNoJS8g9@wba2-peu7d.mongodb.net/test?retryWrites=true', function(err, client) {
    if (err){
-     console.log("Fehler bei der Verbindung zur Datenbank");
+     res.status(500).send('Fehler bei der Verbindung zur Datenbank');
    }
 });
 

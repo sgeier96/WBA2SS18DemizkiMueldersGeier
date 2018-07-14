@@ -2,10 +2,18 @@ var mongoose     = require('mongoose');
 var Schema       = mongoose.Schema;
 
 var OrderSchema = new Schema({
-    name: String,
-    orderNumber: Number                                                         // Auftragsnummer
-//    username: String,                                                         // Publish-Subscribe
-//    ???                                                                       // Es muss auch unbedingt auf die Ressource verweise!
+    orderName: String,
+    description: String,
+    username: String,
+    products: [{
+        productID : String,
+        productName: String,
+        productClass: String,
+        method: String,
+        href: String
+      }]
+                                                               // Publish-Subscribe?
+
 });
 
 module.exports = mongoose.model('Order', OrderSchema);
