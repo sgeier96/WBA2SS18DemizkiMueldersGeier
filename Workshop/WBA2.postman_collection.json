@@ -1,0 +1,429 @@
+{
+	"info": {
+		"_postman_id": "b2550cb3-a23d-49e4-b8f2-6e937c11ea36",
+		"name": "WBA2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Login (POST)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "Ben123",
+							"description": "Manager",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "password",
+							"value": "12345",
+							"description": "Manager",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "username",
+							"value": "Kev",
+							"description": "Azubi",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "1234",
+							"description": "Azubi",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "Klaus",
+							"description": "Lager",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "password",
+							"value": "1234",
+							"description": "Lager",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "",
+							"value": "",
+							"description": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "(UC 1.1) Alle Order",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "orderID",
+							"value": "5b3ce4cb5accb01638bb3619",
+							"description": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/tasks",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"tasks"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "(UC 1.2) Warenkorb erstellen. Produkte zeigen",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "orderID",
+							"value": "5b3ce4cb5accb01638bb3619",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "",
+							"value": "",
+							"description": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/tasks",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"tasks"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "(UC 1.3) Warenkorb aktualisieren",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "productID",
+							"value": "5b1eb2258e3a5d1d6491bfb8",
+							"description": "Nägel",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "productID",
+							"value": "5b212fda40dc0f0acc85461d",
+							"description": "Blätter",
+							"type": "text"
+						},
+						{
+							"key": "number",
+							"value": "4",
+							"description": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/tasks",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"tasks"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "(UC 2.1) Alle freien Mitarbeiter",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:3000/assignments",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"assignments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "(UC 2.2) Auftrag erstellen",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "employeeID",
+							"value": "5b2125acfe45544ef0f8bd57",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "orderName",
+							"value": "Nr.5",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Test Beschreibung",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "Klaus",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "",
+							"value": "",
+							"description": "",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "products[productName]",
+							"value": "Blätter",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "products[productClass]",
+							"value": "C",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "products[productName]",
+							"value": "Nägel",
+							"description": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/assignments",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"assignments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout (GET)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:3000/logout",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "(UC 3.1) Produkt hinzufügen",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "Holz",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "number",
+							"value": "200",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "barcode",
+							"value": "567891234",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "class",
+							"value": "A",
+							"description": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "(US 4.1) Produkt löschen",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:3000/products/5b4a0891621cf90a0054b9a7",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"products",
+						"5b4a0891621cf90a0054b9a7"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "(UC 5.1) Alle Produkte",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:3000/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"products"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
