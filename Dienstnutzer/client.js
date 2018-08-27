@@ -3,6 +3,9 @@ var request = require('request');
 var app = express();
 var bodyParser = require('body-parser');
 
+var faye = require('faye');                                                     // Notwendig für PUB-SUB
+var http = require('http');
+
 // file system module to perform file operations
 const fs = require('fs');
 var userData = fs.readFileSync("./userLogin.json");                             // Synchron Aufbau, weil man die Daten unbedingt braucht.
@@ -111,6 +114,9 @@ app.post('/products', function(req, res){                                       
 app.get('/products', function(req, res){                                        // GET http://localhost:3000/products
   if (accessCheck == true && employeeCheck == 'Lagerverwalter'){
     let urlProducts = serverURL + 'products';
+    // Serverseitiger client
+    var fayeClient = new faye.Client('http://localhost:3000/faye');
+    client.Subscribe('/products', function(message){console.log(message.text);});
 
     request.get(urlProducts, function(err, response, body){                     // GET /products -> Alle Produkte zeigen
       if(err){
@@ -350,6 +356,18 @@ app.put('/tasks' , function(req, res){                                          
             if(err){
               res.status(404).send('Fehler: PUT Request');
             }
+//______________EXPERIMENTELL____________________________________________________
+            else {
+              if (body == "ATTENTION. NUMBER TOO LOW!!!"){                      // Check (nach der erfolgreichen Entnahme), ob zu wenig auf Lager.
+                client.publish('/products', {text: 'Produktmenge zu gering!'})
+                .then(function(){
+                  console.log('Message received by server!');
+                }, function(error) {
+                  console.log('There was an error publishing: '+ error.message);
+                });
+              }                                                                 //<------------------------------------------------- Publish-Subscribe(faye)
+            }
+//______________EXPERIMENTELL____________________________________________________
           });
 
           let cartData = {
@@ -387,7 +405,10 @@ app.put('/tasks' , function(req, res){                                          
   }
 });
 //------------------------------------------------------------------------------
-
+//================================= FAYE =======================================
+var fayeServer = http.createServer();
+var fayeService = new faye.NodeAdapter({ mount: '/faye', timeout: 45});
+fayeService.attach(fayeServer);
 
 //==============================================================================
 app.listen(3000, function(){                                                    // Der Dienstgeber ist auf Port 3000 verfügbar.
