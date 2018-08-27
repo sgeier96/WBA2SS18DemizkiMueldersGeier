@@ -78,7 +78,7 @@ router.route('/products/:product_id')
     })
 
     .put(function(req, res) {                                                   // Aktualliesieren (Zugriff PUT http://localhost:8080/app/products/:product_id)
-
+        var responseText = "";
         Product.findById(req.params.product_id, function(err, product) {
 
             if (err){
@@ -91,14 +91,17 @@ router.route('/products/:product_id')
               product.class = req.body.class;                                   // Namen & Menge aktualliesieren
 
               if (product.number < 10){
-                console.log("ATTENTION. NUMBER TOO LOW!!!");                    // Nachricht versenden, wenn zu wenig der Ware vorhanden ist.
+                responseText = "ATTENTION. NUMBER TOO LOW!!!";                  // Nachricht versenden, wenn zu wenig der Ware vorhanden ist.
               }
-              product.save(function(err) {                                        // Produkt speichern
+              else {
+                responseText = "Product updated!";
+              }
+              product.save(function(err) {                                      // Produkt speichern
                   if (err){
                     res.status(500).send(err);
                   }
                   else {
-                    res.status(200).send('Product updated!');
+                    res.status(200).send(responseText);
                   }
               });
             }
