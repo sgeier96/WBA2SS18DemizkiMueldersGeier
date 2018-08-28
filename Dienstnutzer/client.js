@@ -4,7 +4,7 @@ var app = express();
 var bodyParser = require('body-parser');
 
 var faye = require('faye');                                                     // Notwendig für PUB-SUB
-var http = require('http');
+var fayeClient = new faye.Client('http://localhost:8000');
 
 // file system module to perform file operations
 const fs = require('fs');
@@ -20,12 +20,12 @@ var onlineUser;                                                                 
 var allPersons;                                                                 // <-- Alle Personen
 var freeEmployee = [];                                                          // <-- Jeder Mitarbeiter der keine Arbeit hat
 var serverURL = 'https://wba2demizkimuelders.herokuapp.com/app/';               // <-- Server URL
-
+//var serverURL = 'http://localhost:8080/app/';                                 // <-- Zum schnellen testen (lokal)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 //----------------------- Login überprüfen (Alle) ------------------------------
-app.post('/login', function(req, res){
+app.post('/login', function(req, res){                                          // POST http://localhost:3000/login body = {username,password}
   let urlEmployee = serverURL + 'employees';
   let username = req.body.username;
   let password = req.body.password;
@@ -44,10 +44,22 @@ app.post('/login', function(req, res){
             employeeCheck = allPersons[i].rank;
             accessCheck = true;                                                 // User ist nun Online
 
+            switch (employeeCheck) {
+              case "Lagerverwalter":                                            // <------------ console.log() ersetzen durch was passendes!!!!
+                fayeClient.subscribe('/products', function(message){console.log(message.text);});
+                break;
+              case "Azubi":
+                fayeClient.subscribe('/orders/'+ username, function(message){console.log(message.text);});
+                break;
+              case "Manager":
+                fayeClient.subscribe('/carts', function(message){console.log(message.text);});
+                break;
+            }
+
             // stringify JSON Object
             var userContent = JSON.stringify(onlineUser);
 
-            fs.writeFile("userLogin.json", userContent, function (err) {        // Zum schnellen testen. Bei einer Globale Variable sind Fehler aufgetaucht.
+            fs.writeFile("userLogin.json", userContent, function (err) {        // Zum schnellen testen. Bei einer globalen Variable sind Fehler aufgetaucht.
                 if (err) {
                   res.status(400).send('Fehler beim Login! (JSON)');
                 }
@@ -65,9 +77,9 @@ app.post('/login', function(req, res){
   else {
     res.status(400).send('Sie sind schon angemeldet.');
   }
-});                                         // POST http://localhost:3000/login body = {username,password}
+});
 //---------------------------- Logout (Alle) -----------------------------------
-app.get('/logout', function(req, res){
+app.get('/logout', function(req, res){                                          // GET http://localhost:3000/logout
   accessCheck = false;
   fs.writeFile("userLogin.json", "{}", function (err) {                         // Löschen der User Daten aus userLogin.json
       if (err) {
@@ -77,7 +89,7 @@ app.get('/logout', function(req, res){
         res.status(200).send('Logout erfolgreich!');
       }
   });
-});                                         // GET http://localhost:3000/logout
+});
 //------------------- Produkt hinzufügen (Lagerverwalter) ----------------------
 app.post('/products', function(req, res){                                       // POST http://localhost:3000/products body = {name,number("bedeutet Anzahl"),barcode,class}
   if (accessCheck == true && employeeCheck == 'Lagerverwalter'){                // Testen, ob User angemeldet und ein Lagerverwalter ist
@@ -114,9 +126,6 @@ app.post('/products', function(req, res){                                       
 app.get('/products', function(req, res){                                        // GET http://localhost:3000/products
   if (accessCheck == true && employeeCheck == 'Lagerverwalter'){
     let urlProducts = serverURL + 'products';
-    // Serverseitiger client
-    var fayeClient = new faye.Client('http://localhost:3000/faye');
-    client.Subscribe('/products', function(message){console.log(message.text);});
 
     request.get(urlProducts, function(err, response, body){                     // GET /products -> Alle Produkte zeigen
       if(err){
@@ -212,6 +221,12 @@ app.post('/assignments', function(req, res){                                    
           res.status(404).send('Fehler: POST request');
         }
         else {
+          fayeClient.publish('/orders/' + selectedEmployee.username, {text: 'Neuer Auftrag ist eingegangen! ' + body}) // Für den Azubi
+          .then(function(){
+            console.log('Faye-Message received by server!');
+          }, function(error) {
+            console.log('There was an error publishing: '+ error.message);
+          });
           res.status(201).send(body);                                           // Erstellte Order wird zurückgeschickt
         }
       });
@@ -229,6 +244,7 @@ app.get('/tasks', function(req, res){                                           
   let urlOrder = serverURL + 'orders';
   let allOrders;
   let username = userData.username;
+  let userOrders = [];
 
   if (accessCheck == true){                                                     // Login Überprüfung
     request.get(urlOrder, function(err, response, body){
@@ -244,9 +260,10 @@ app.get('/tasks', function(req, res){                                           
         else {
           for (var i = 0; i < allOrders.length; i++){                           // -> Nur die User relevanten Order zeigen.
             if (allOrders[i].username == username){
-              res.status(200).send(allOrders[i]);
+              userOrders.push(allOrders[i]);
             }
           }
+          res.status(200).send(userOrders);
         }
       }
     });
@@ -259,9 +276,38 @@ app.get('/tasks', function(req, res){                                           
 app.post('/tasks' , function(req, res){                                         // POST http://localhost:3000/tasks   body = {orderID = ...}
   let urlCart = serverURL + 'carts';                                            // Auftrag ausgewählt. 1. Warenkorb erstellen ---> 2. Alle Produkte zeigen
   let urlProducts = serverURL + 'products';
+  let urlEmployee = serverURL + 'employees/' + onlineUser._id;
   orderID = req.body.orderID;
+  console.log("orderID: " + orderID + "/ UserID: " + onlineUser._id + "/" + userData._id);
 
-  var cartData = {
+  let updatedUser = {
+    "name" : userData.name,
+    "surname" : userData.surname,
+    "address" : userData.address,
+    "age" : userData.age,
+    "username" : userData.username,
+    "password" : userData.password,
+    "rank"  : userData.rank,
+    "approval" : userData.approval,
+    "orderID" : orderID
+  };
+
+  let userOptions = {
+    uri: urlEmployee,
+    method: 'PUT',
+    headers:{
+      'Content-Type': 'application/json'
+    },
+    json : updatedUser
+  };
+
+  request.put(userOptions, function(err, response, body){                       // Request auf den Mitarbeiter. (PUT) Aktuellen Auftrag eintragen.
+    if(err){
+      res.status(404).send('Fehler: PUT request');
+    }
+  });
+
+  let cartData = {
     "username": userData.username,
     "orderID" : orderID,
     "links" : [{
@@ -273,7 +319,7 @@ app.post('/tasks' , function(req, res){                                         
       }
     ]
   };
-  var  options = {
+  let cartOptions = {
     uri: urlCart,
     method: 'POST',
     headers:{
@@ -282,7 +328,7 @@ app.post('/tasks' , function(req, res){                                         
     json : cartData
   };
 
-  request.post(options, function(err, response, body){                          // Request auf den Warenkorb. (POST) Erstellen eines Warenkorbes.
+  request.post(cartOptions, function(err, response, body){                      // Request auf den Warenkorb. (POST) Erstellen eines Warenkorbes.
     if(err){
       res.status(404).send('Fehler: POST request');
     }
@@ -356,18 +402,17 @@ app.put('/tasks' , function(req, res){                                          
             if(err){
               res.status(404).send('Fehler: PUT Request');
             }
-//______________EXPERIMENTELL____________________________________________________
             else {
-              if (body == "ATTENTION. NUMBER TOO LOW!!!"){                      // Check (nach der erfolgreichen Entnahme), ob zu wenig auf Lager.
-                client.publish('/products', {text: 'Produktmenge zu gering!'})
+              if (body === "ATTENTION. NUMBER TOO LOW!!!"){                     // Check (nach der erfolgreichen Entnahme), ob zu wenig auf Lager.
+                fayeClient.publish('/products', {text: 'Die Menge des Produktes mit der ID: ' + productID + ' ist zu gering! Bitte nachbestellen.'})
                 .then(function(){
-                  console.log('Message received by server!');
+                  console.log('Faye-Message received by server!');
                 }, function(error) {
                   console.log('There was an error publishing: '+ error.message);
                 });
-              }                                                                 //<------------------------------------------------- Publish-Subscribe(faye)
+              }
             }
-//______________EXPERIMENTELL____________________________________________________
+
           });
 
           let cartData = {
@@ -396,6 +441,12 @@ app.put('/tasks' , function(req, res){                                          
               res.status(404).send('Fehler: PUT Request');
             }
             else {
+              fayeClient.publish('/carts', {text: 'Der Warenkorb und mit der ID: ' + cartID._id + ' wurde erstellt. Auftrag erfolgreich begonnen!'})
+              .then(function(){
+                console.log('Faye-Message received by server!');
+              }, function(error) {
+                console.log('There was an error publishing: '+ error.message);
+              });
               res.status(200).send(body);                                       // Bestätigung der erfolgreichen Entnahme durch das Zusenden des Warenkorbes.
             }
           });
@@ -405,10 +456,6 @@ app.put('/tasks' , function(req, res){                                          
   }
 });
 //------------------------------------------------------------------------------
-//================================= FAYE =======================================
-var fayeServer = http.createServer();
-var fayeService = new faye.NodeAdapter({ mount: '/faye', timeout: 45});
-fayeService.attach(fayeServer);
 
 //==============================================================================
 app.listen(3000, function(){                                                    // Der Dienstgeber ist auf Port 3000 verfügbar.
