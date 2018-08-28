@@ -9,8 +9,8 @@ var EmployeeSchema = new Schema({
     username: String,
     password: String,
     rank: String,
-    approval: String
-    //employee_id: Number                                                       // Für POST Abfrage, falls dieselbe Person erstellt wird.
+    approval: String,
+    orderID: String
 });
 
 module.exports = mongoose.model('Employee', EmployeeSchema);
