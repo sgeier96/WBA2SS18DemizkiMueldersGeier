@@ -2,10 +2,18 @@ var express    = require('express');                                            
 var app        = express();                                                     // Definiere app um express zu verwenden
 var bodyParser = require('body-parser');
 
+var http = require('http');                                                     // Für faye(PUB-SUB)
+var faye = require('faye');
+//================================= FAYE =======================================
+var fayeService = new faye.NodeAdapter({ mount: '/', timeout: 45});
+var fayeServer = http.createServer(app);
+fayeService.attach(fayeServer);
+//==============================================================================
+
 app.use(bodyParser.urlencoded({ extended: true }));                             // app so konfigurieren, dass bodyParser() verwendet wird,
 app.use(bodyParser.json());                                                     // so können wir die Daten von einem POST erhalten
 
-var port = process.env.PORT || 8080;                                            // den Port setzen
+var port = process.env.PORT || 8080;
 
 // ======================== ROUTEN FÜR UNSERE APP ==============================
 var router = express.Router();                                                  // Instanz des Express Routers
@@ -400,13 +408,14 @@ router.route('/carts/:cart_id')
 app.use('/app', router);                                                        // Alle Routen werden mit /app eingeleitet.
 
 //========================== MONGODB CONNECTION ================================
-var mongoose   = require('mongoose');                                           //Mit mongoDB verbinden
+var mongoose   = require('mongoose');                                           // Mit mongoDB verbinden
 mongoose.connect('mongodb+srv://vadeki:m81HjAmsYNoJS8g9@wba2-peu7d.mongodb.net/test?retryWrites=true', function(err, client) {
    if (err){
      res.status(500).send('Fehler bei der Verbindung zur Datenbank');
    }
 });
-
+//============================= Faye SERVER ====================================   Keine andere Lösung gefunden um faye und express Router gleichzeitig
+fayeServer.listen(8000);                                                        // zu verwenden. Ein extra Server nur für die faye Kommunikation.
 // ========================= SERVER STARTEN ====================================
 app.listen(port, function() {
     console.log("Server is running on port " + port);
