@@ -3,10 +3,10 @@ module.exports = (function() {
     var employeesRoute = require('express').Router();
     var Employee = require('../app/models/employee');
 
-    // ========================== Mitarbeiter ROUTE ================================
+// ========================== Mitarbeiter ROUTE ================================
     employeesRoute.route('/')
 
-        .post(function(req, res) {                                                  // Einen Mitarbeiter erstellen (Zugriff: POST http://localhost:8080/app/employees)
+        .post(function(req, res) {                                              // Einen Mitarbeiter erstellen (Zugriff: POST http://localhost:8080/employees)
 
             var employee = new Employee();
             employee.name = req.body.name;
@@ -39,7 +39,7 @@ module.exports = (function() {
             });
         })
 
-        .get(function(req, res) {                                                   // Alle Mitarbeiter (Zugriff: GET http://localhost:8080/app/employees)
+        .get(function(req, res) {                                               // Alle Mitarbeiter (Zugriff: GET http://localhost:8080/employees)
             Employee.find(function(err, employee) {
                 if (err){
                   res.status(500).send(err);
@@ -49,10 +49,10 @@ module.exports = (function() {
                 }
             });
         });
-    // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
     employeesRoute.route('/:employee_id')
 
-        .get(function(req, res) {                                                   // Mitarbeiter mit der ID (Zugriff GET http://localhost:8080/app/employees/:employee_id)
+        .get(function(req, res) {                                               // Mitarbeiter mit der ID (Zugriff GET http://localhost:8080/employees/:employee_id)
             Employee.findById(req.params.employee_id, function(err, employee) {
                 if (err){
                   res.status(500).send(err);
@@ -63,7 +63,7 @@ module.exports = (function() {
             });
         })
 
-        .put(function(req, res) {                                                   // Aktualliesieren (Zugriff PUT http://localhost:8080/app/employees/:employee_id)
+        .put(function(req, res) {                                               // Aktualliesieren (Zugriff PUT http://localhost:8080/employees/:employee_id)
 
             Employee.findById(req.params.employee_id, function(err, employee) {
 
@@ -93,7 +93,7 @@ module.exports = (function() {
             });
         })
 
-        .delete(function(req, res) {                                                // Den Mitarbeiter nach der ID gelöscht (Zugriff DELETE http://localhost:8080/app/employees/:employee_id)
+        .delete(function(req, res) {                                            // Den Mitarbeiter nach der ID gelöscht (Zugriff DELETE http://localhost:8080/employees/:employee_id)
 
             Employee.deleteOne({
                 _id: req.params.employee_id
