@@ -4,7 +4,7 @@ var app = express();
 var bodyParser = require('body-parser');
 
 var faye = require('faye');                                                     // Notwendig für PUB-SUB
-var fayeClient = new faye.Client('http://localhost:8000');
+var fayeClient = new faye.Client('http://localhost:8000');                      //<-----Momentan nur lokal!!!
 
 // file system module to perform file operations
 const fs = require('fs');
@@ -19,7 +19,7 @@ var accessCheck = false;                                                        
 var onlineUser;                                                                 // <-- aktuelle User Daten
 var allPersons;                                                                 // <-- Alle Personen
 var freeEmployee = [];                                                          // <-- Jeder Mitarbeiter der keine Arbeit hat
-var serverURL = 'https://wba2demizkimuelders.herokuapp.com/app/';               // <-- Server URL
+var serverURL = 'https://wba2demizkimuelders.herokuapp.com/';                   // <-- Server URL
 //var serverURL = 'http://localhost:8080/app/';                                 // <-- Zum schnellen testen (lokal)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -44,18 +44,6 @@ app.post('/login', function(req, res){                                          
             employeeCheck = allPersons[i].rank;
             accessCheck = true;                                                 // User ist nun Online
 
-            switch (employeeCheck) {
-              case "Lagerverwalter":                                            // <------------ console.log() ersetzen durch was passendes!!!!
-                fayeClient.subscribe('/products', function(message){console.log(message.text);});
-                break;
-              case "Azubi":
-                fayeClient.subscribe('/orders/'+ username, function(message){console.log(message.text);});
-                break;
-              case "Manager":
-                fayeClient.subscribe('/carts', function(message){console.log(message.text);});
-                break;
-            }
-
             // stringify JSON Object
             var userContent = JSON.stringify(onlineUser);
 
@@ -64,7 +52,21 @@ app.post('/login', function(req, res){                                          
                   res.status(400).send('Fehler beim Login! (JSON)');
                 }
             });
-            res.status(201).send('Zugriff gewährt!');
+
+            switch (employeeCheck) {
+              case "Lagerverwalter":                                            // <------------ console.log() ersetzen durch was passendes!!!!
+                fayeClient.subscribe('/products', function(message){console.log(message.text);});
+                res.status(201).send('Zugriff gewährt! Folgende Funktionen stehen ihnen zur Verfügung: \n Logout (GET - http://localhost:3000/logout ),\n Alle Produkte ausgeben (GET - http://localhost:3000/products ),\n Produkt hinzufügen (POST - http://localhost:3000/products )\n oder Produkt löschen (DELETE - http://localhost:3000/products/:product_id )');
+                break;
+              case "Azubi":
+                fayeClient.subscribe('/orders/'+ username, function(message){console.log(message.text);});
+                res.status(201).send('Zugriff gewährt! Folgende Funktionen stehen ihnen zur Verfügung: \n Logout (GET - http://localhost:3000/logout ),\n Alle Aufträge anzeigen (GET - http://localhost:3000/tasks )');
+                break;
+              case "Manager":
+                fayeClient.subscribe('/carts', function(message){console.log(message.text);});
+                res.status(201).send('Zugriff gewährt! Folgende Funktionen stehen ihnen zur Verfügung: \n Logout (GET - http://localhost:3000/logout ),\n Alle Mitarbeiter ohne Aufgabe anzeigen (GET - http://localhost:3000/assignments )');
+                break;
+            }
           }
         }
         if (accessCheck == false)
@@ -175,6 +177,7 @@ app.get('/assignments', function(req, res){                                     
         freeEmployee[i] = allPersons[i];
       }
     }
+    freeEmployee.push('Auftrag erstellen (POST - http://localhost:3000/assignments )');// URL hinzugefügt, für das Hypermedia Konzpt
     res.status(200).send(freeEmployee);                                         // Alle Mitarbeiter ohne Aufgabe zeigen
   }
   else {
@@ -263,6 +266,7 @@ app.get('/tasks', function(req, res){                                           
               userOrders.push(allOrders[i]);
             }
           }
+          userOrders.push('Auftrag auswählen und alle Produkte anzeigen lassen. (POST - http://localhost:3000/tasks )');// URL hinzugefügt, für das Hypermedia Konzpt
           res.status(200).send(userOrders);
         }
       }
@@ -278,7 +282,6 @@ app.post('/tasks' , function(req, res){                                         
   let urlProducts = serverURL + 'products';
   let urlEmployee = serverURL + 'employees/' + onlineUser._id;
   orderID = req.body.orderID;
-  console.log("orderID: " + orderID + "/ UserID: " + onlineUser._id + "/" + userData._id);
 
   let updatedUser = {
     "name" : userData.name,
@@ -343,6 +346,7 @@ app.post('/tasks' , function(req, res){                                         
     }
     else {
       allProducts = JSON.parse(body);
+      allProducts.push('Ausgewähltes Produkt dem Warenkorb hinzufügen. (PUT - http://localhost:3000/tasks )');
       res.status(200).send(allProducts);                                        // Senden aller Produkte, damit der Benutzer welche auswählen kann.
     }
   });
